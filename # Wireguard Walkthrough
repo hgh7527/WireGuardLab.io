@@ -1,0 +1,95 @@
+# Wireguard Walkthrough
+
+## Digital Ocean Ubuntu server setup
+### Qualifications 
+Choose Sanfrancisco
+Region: SFO3
+```bash
+Image : Ubuntu 20.04 (LTS) x64
+
+Resize: 1 vCPU 1GB / 25GB Disk ($6/mo)
+
+IPv4: 128.199.7.13 
+
+IPv6: Enable
+
+Private IP: 10.124.0.2 
+
+VPC: default-sfo3
+```
+
+## First install docker 
+### Guide how to:
+    https://docs.docker.com/desktop/install/ubuntu/
+## After docker and docker compose installed
+    sudo apt install docker-compose
+### Run these for the server:
+```bash
+mkdir -p ~/wireguard/
+mkdir -p ~/wireguard/config/
+nano ~/wireguard/docker-compose.yml
+```
+### Copy and paste the content below into yml file:
+```bash
+version: '3.3'
+# change 3.8 to 3.3 for a viable version
+services:
+  wireguard:
+    container_name: wireguard
+    image: linuxserver/wireguard
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Hong_Kong
+      - SERVERURL=1.2.3.4
+      - SERVERPORT=51820
+      - PEERS=pc1,pc2,phone1
+      - PEERDNS=auto
+      - INTERNAL_SUBNET=10.0.0.0
+    ports:
+      - 51820:51820/udp
+    volumes:
+      - type: bind
+        source: ./config/
+        target: /config/
+      - type: bind
+        source: /lib/modules
+        target: /lib/modules
+    restart: always
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+```
+***There are several places you need to modify.***
+
+TZ refers to timezone. Change to 
+    America/Chicago
+
+SERVERURL Change to digitalocen IP
+    128.199.7.13
+
+### To save the file.
+```bash
+CTRL + X, Y, ENTER 
+```
+### To Start Wireguard run
+```bash
+cd ~/wireguard/
+docker-compose up -d
+```
+### Connect your phone to Wireguard
+```bash
+docker-compose logs -f wireguard
+```
+You will see the execution log, and QR codes of Wireguard VPN connection settings.(in pictures)
+
+Download and Open Wireguard application on your phone, click
+```bash
+ +
+ ``` 
+to Create from QR code (in pictures)
+
+### Help
+https://thematrix.dev/setup-wireguard-vpn-server-with-docker/
